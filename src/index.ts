@@ -1,7 +1,7 @@
 /** Local loopback browser access without the Web startup token. */
 import type { Context } from '@deepseek-ai/cordis'
 import type { ConnectionTrustRequest, HostConnectionHandle, PeerScope } from '@deepseek-ai/dsh-client-connection'
-import { isLoopbackHost } from '@deepseek-ai/dsh-host-webserver'
+import { isIP } from 'node:net'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 
@@ -53,6 +53,34 @@ function requestHeader(request: Pick<LocalWebAuthRequest, 'headers'>, name: stri
   if (headers instanceof Headers) return headers.get(name) ?? undefined
   const value = headers[name]
   return typeof value === 'string' ? value : undefined
+}
+
+/**
+ * Check loopback literals without loading the WebServer package and its runtime dependency tree.
+ * @param host - IP literal, optionally carrying an IPv6 zone identifier.
+ */
+function isLoopbackHost(host: string): boolean {
+  const zoneAt = host.indexOf('%')
+  const address = zoneAt === -1 ? host : host.slice(0, zoneAt)
+  const version = isIP(address)
+  if (version === 4) return Number(address.slice(0, address.indexOf('.'))) === 127
+  if (version !== 6) return false
+
+  // Convert an IPv4 dotted tail to the two hexadecimal IPv6 groups it represents.
+  const ipv4Tail = /^(.*:)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(address)
+  const normalized = ipv4Tail === null
+    ? address
+    : `${ipv4Tail[1]}${((Number(ipv4Tail[2]) << 8) | Number(ipv4Tail[3])).toString(16)}:${((Number(ipv4Tail[4]) << 8) | Number(ipv4Tail[5])).toString(16)}`
+  const halves = normalized.split('::')
+  const left = halves[0] === '' ? [] : halves[0]!.split(':').map(part => Number.parseInt(part, 16))
+  const right = halves.length === 1 || halves[1] === '' ? [] : halves[1]!.split(':').map(part => Number.parseInt(part, 16))
+  const groups = [...left, ...Array<number>(8 - left.length - right.length).fill(0), ...right]
+
+  // ::1 is the IPv6 loopback literal; mapped IPv4 loopback covers all of 127/8.
+  if (groups.slice(0, 7).every(group => group === 0) && groups[7] === 1) return true
+  return groups.slice(0, 5).every(group => group === 0)
+    && groups[5] === 0xffff
+    && (groups[6]! >>> 8) === 127
 }
 
 /** Restrict the source-check exception to a bare top-level GET of the app shell. */
