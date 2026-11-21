@@ -14,15 +14,21 @@
     "url": "https://github.com/qingtiannew/dsh-local-browser-access/issues"
   },
   "keywords": [
-    "dsh-plugin",
-    "dsh",
-    "plugin",
+    "browser-access",
     "deepseek-harness",
-    "typescript",
+    "deepseek-harness-plugin",
+    "dsh",
+    "dsh-plugin",
+    "dsh-plugin-bundle",
+    "dsh-plugin-market",
+    "dsh-web",
     "javascript",
     "local-browser",
+    "plugin",
+    "plugins",
+    "typescript",
     "token-free",
-    "browser-access"
+    "web-search"
   ],
   "packageManager": "pnpm@11.7.0",
   "type": "module",
