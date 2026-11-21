@@ -15,7 +15,11 @@
   },
   "keywords": [
     "dsh-plugin",
+    "dsh",
+    "plugin",
     "deepseek-harness",
+    "typescript",
+    "javascript",
     "local-browser",
     "token-free",
     "browser-access"
